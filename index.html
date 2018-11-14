@@ -258,6 +258,9 @@
                   <li>
                     <a href="#4ec6aa80ac" class="toc-h2 toc-link" data-title="Проверка наличия товара у партнера">Проверка наличия товара у партнера</a>
                   </li>
+                  <li>
+                    <a href="#5e21467a10" class="toc-h2 toc-link" data-title="Резервирование товара">Резервирование товара</a>
+                  </li>
               </ul>
           </li>
           <li>
@@ -302,7 +305,7 @@
 
 <p>Если товар есть не во всех точках самовывоза или существует техническое ограничение на перевозку товаров из одного пункта в другой, предусмотрен формат указания списка точек самовывоза для отдельно взятого товара, для этого необходимо использовать параметр points и перечислить в нем точки самовывоза:</p>
 
-<p>Список точек самовывоза партнер загружает через Личный кабинет, данный процесс описан в разделе<a href="#19530bd8b7">Предоставление информации о точках самовывоза</a></p>
+<p>Список точек самовывоза партнер загружает через Личный кабинет, данный процесс описан в разделе <a href="#19530bd8b7">Предоставление информации о точках самовывоза</a></p>
 <h2 id='5f7c417405'>Процесс загрузки каталога</h2>
 <p>Подготовленный каталог необходимо указать в настройках аккаунта, которые задаются в Личном кабинете. Для каждого региона необходимо указать свой URL до целевого каталога. В случае, если партнер присутствует во всех регионах и имеет единый товарный каталог, необходимо выбрать “Все регионы” (необходимо предварительное согласование менеджера).</p>
 
@@ -360,60 +363,209 @@
 <h2 id='c3b63905bf'>Покупка товара с последующим самовывозом</h2>
 <p>Данный сценарий предполагает, что в точке самовывоза партнера присутствует кредитный специалист, который имеет доступ в систему Банка и полностью сопровождает процесс подписания договора с Покупателем.
 <img src="images/image_delivery_self.jpeg" alt="Image delivery self" /></p>
-<h2 id='4ec6aa80ac'>Проверка наличия товара у партнера</h2><pre class="highlight shell tab-shell"><code>curl -vk -X POST  https://example.com/order/check/  
-  -H <span class="s1">'Cache-Control: no-cache'</span> -H <span class="s1">'Content-Type: application/json'</span> 
-  -d <span class="s1">'{"offersRequest": [
-        {
-            "offerId" : 123,
-            "quantity" : 1,
-            "regionId" : 77,
-            "productCode" : "0-0-6"
-        }
-    ]}'</span>
-</code></pre>
-<blockquote>
-<p>Пример ответа в JSON:</p>
-</blockquote>
-<pre class="highlight json tab-json"><code><span class="p">[</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Fluffums"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"breed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calico"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"fluffiness"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"cuteness"</span><span class="p">:</span><span class="w"> </span><span class="mi">7</span><span class="w">
-  </span><span class="p">},</span><span class="w">
-  </span><span class="p">{</span><span class="w">
-    </span><span class="s2">"id"</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Max"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"breed"</span><span class="p">:</span><span class="w"> </span><span class="s2">"unknown"</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"fluffiness"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="p">,</span><span class="w">
-    </span><span class="s2">"cuteness"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="w">
-  </span><span class="p">}</span><span class="w">
-</span><span class="p">]</span><span class="w">
-</span></code></pre>
+<h2 id='4ec6aa80ac'>Проверка наличия товара у партнера</h2>
 <p>В момент когда Покупатель выбрал предложение, партнеру поступает запрос на проверку наличия данного товара в регионе. В ответ партнер должен уведомить о возможности зарезервировать товар, а также прислать условия доставки и самовывоза. Расчет параметров получения товара клиентом должен производиться на основе доступных товаров. (Например, если доступно только 3 из 5 переданных в запросе товаров, стоимость доставки должна быть только для этих трех товаров).</p>
-<h3 id='http'>HTTP запрос</h3>
+
+<blockquote>
+<p>Пример запроса POST /order/check:</p>
+</blockquote>
+<pre class="highlight shell tab-shell"><code>curl -X POST https://example.com/order/check <span class="se">\</span>
+  -H <span class="s1">'Content-Type: application/json'</span> <span class="se">\</span>
+  -H <span class="s1">'cache-control: no-cache'</span> <span class="se">\</span>
+  -d <span class="s1">'{"offersRequest":[
+{"offerId":"123",
+"quantity":1,
+"regionId":77,
+"productCode":"0-0-6"}
+]}'</span>
+</code></pre><h3 id='http'>HTTP запрос</h3>
 <p><code>POST /order/check</code></p>
-<h3 id='body-parameters'>Body parameters</h3>
+<h3 id='c35d6d472e'>Входные параметры</h3>
 <table><thead>
 <tr>
-<th>Parameter</th>
-<th>Default</th>
-<th>Description</th>
+<th>Параметр</th>
+<th>Обязательность</th>
+<th>Описание</th>
 </tr>
 </thead><tbody>
 <tr>
-<td>include_cats</td>
-<td>false</td>
-<td>If set to true, the result will also include cats.</td>
-</tr>
-<tr>
-<td>available</td>
-<td>true</td>
-<td>If set to false, the result will include kittens that have already been adopted.</td>
+<td><code>offersRequest</code><br>  Array of <a href="#offerrequest">{offerRequest}</a></td>
+<td>Обязательно</td>
+<td>Массив объектов с запросами на проверку наличия товаров, которые выбрал Покупатель.</td>
 </tr>
 </tbody></table>
-<h1 id='errors'>Errors</h1>
+<h3 id='offerrequest'>объект offerRequest</h3>
+<table><thead>
+<tr>
+<th>Параметр</th>
+<th>Обязательность</th>
+<th>Описание</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>offerId</code> <br> integer</td>
+<td>Обязательно</td>
+<td>Идентификатор товара из YML-каталога.</td>
+</tr>
+<tr>
+<td><code>quantity</code><br>integer</td>
+<td>Обязательно</td>
+<td>Количество единиц товара для бронирования.</td>
+</tr>
+<tr>
+<td><code>regionId</code> <br>integer</td>
+<td>Обязательно</td>
+<td>Идентификатор региона</td>
+</tr>
+<tr>
+<td><code>productCode</code><br> string</td>
+<td>Обязательно</td>
+<td>Код кредитного продукта.<br> Примеры:<br>0-0-3<br>0-0-6<br>0-0-10<br>0-0-12<br>0-0-18<br>0-0-24<br>0-0-36<br></td>
+</tr>
+<tr>
+<td><code>orderId</code><br> string</td>
+<td>Необязательно</td>
+<td>Идентификатор заказа, сгенерированный на стороне маркетплейса</td>
+</tr>
+</tbody></table>
+
+<blockquote>
+<p>Пример ответа в JSON:</p>
+</blockquote>
+<pre class="highlight json tab-json"><code><span class="p">{</span><span class="w">
+    </span><span class="s2">"offersResponse"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+        </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"status"</span><span class="p">:</span><span class="w"> </span><span class="s2">"available"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"offerId"</span><span class="p">:</span><span class="w"> </span><span class="s2">"123"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"quantity"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"points"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+                </span><span class="s2">"0"</span><span class="w">
+            </span><span class="p">]</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">],</span><span class="w">
+    </span><span class="s2">"DeliveryOptions"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"delivery"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="w">
+            </span><span class="p">{</span><span class="w">
+                </span><span class="s2">"DeliveryID"</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"DeliveryName"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Доставка СДЭК(склад-склад)"</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"Cost"</span><span class="p">:</span><span class="w"> </span><span class="mi">1000</span><span class="p">,</span><span class="w">
+                </span><span class="s2">"Days"</span><span class="p">:</span><span class="w"> </span><span class="s2">"1-2"</span><span class="w">
+            </span><span class="p">}</span><span class="w">
+        </span><span class="p">]</span><span class="w">
+    </span><span class="p">}</span><span class="w">
+</span><span class="p">}</span><span class="w">
+</span></code></pre><h3 id='http-200-ok'>Ответ HTTP 200 OK</h3>
+<table><thead>
+<tr>
+<th>Параметр</th>
+<th>Обязательность</th>
+<th>Описание</th>
+</tr>
+</thead><tbody>
+<tr>
+<td>offersResponse Array of <a href="#offerresponse">{offerResponse}</a></td>
+<td>Обязательно</td>
+<td>Массив объектов со статусом резерва по каждому из запрошенных товаров.</td>
+</tr>
+<tr>
+<td>DeliveryOptions <a href="#deliveryoption">{DeliveryOption}</a></td>
+<td>Обязательно</td>
+<td>Дополнительная информация по параметрам доставки, которую сможет выбирать Покупатель. Партнер должен представить варианты доставки для всей группы товаров.</td>
+</tr>
+</tbody></table>
+<h3 id='offerresponse'>объект offerResponse</h3>
+<table><thead>
+<tr>
+<th>Параметр</th>
+<th>Обязательность</th>
+<th>Описание</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>offerId</code><br>integer</td>
+<td>Обязательно</td>
+<td>Идентификатор товара из YML-каталога.</td>
+</tr>
+<tr>
+<td><code>status</code><br>string</td>
+<td>Обязательно</td>
+<td>Варианты:<br>‘available’ — товар доступен;<br>‘unavailable’ — товар недоступен.</td>
+</tr>
+<tr>
+<td><code>points</code><br> Array of string</td>
+<td>Обязательно</td>
+<td>Идентификаторы пунктов самовывоза, в которых доступен товар.<br>Также необходимо добавлять в список 0, если доступна доставка курьером. Пустой массив - товар недоступен.</td>
+</tr>
+<tr>
+<td><code>reason</code><br>string</td>
+<td>Необязательно</td>
+<td>Указывается, если товар недоступен (пример: “not in stock”).</td>
+</tr>
+</tbody></table>
+<h3 id='deliveryoption'>объект DeliveryOption</h3><h3 id='72aecd9ad8'>Ошибка</h3><h2 id='5e21467a10'>Резервирование товара</h2>
+<aside class="notice">
+Базовый сценарий предполагает два этапа резервирования:
+</aside>
+<h3 id='http-2'>HTTP запрос</h3>
+<p><code>POST /order/:orderId/prereserve</code>
+<aside class="success">
+Предрезервирование — или, так называемое, &quot;краткосрочное&quot; резервирование — Покупатель выбрал товар и приступил к заполнению формы, партнер на вызов данного метода бронирует товар для заданного orderId, который будет использоваться при втором этапе резервирования, метод которого будет вызвано следом. партнер сам определяет время короткого резерва, но значение должно быть не меньше 30 минут
+</aside></p>
+
+<p><code>POST /order/:orderId/reserve</code>
+<aside class="success">
+Резервирование — после того, как Покупатель заполнил заявку, выбрал способ доставки, партнеру приходит запрос на резервирование товара до момента подписания кредитного договора клиентом.
+</aside></p>
+<h3 id='c35d6d472e-2'>Входные параметры</h3>
+<table><thead>
+<tr>
+<th>Параметр</th>
+<th>Обязательность</th>
+<th>Описание</th>
+</tr>
+</thead><tbody>
+<tr>
+<td><code>orderId</code><br>  string</td>
+<td>Обязательно</td>
+<td>Идентификатор заказа, сгенерированный на стороне маркетплейса.</td>
+</tr>
+<tr>
+<td><code>offerIds</code><br> Array of <a href="#offer">{offer}</a></td>
+<td>Обязательно</td>
+<td>Массив объектов с идентификаторами товаров и их количество.</td>
+</tr>
+<tr>
+<td><code>regionId</code><br> integer</td>
+<td>Обязательно</td>
+<td>Идентификатор региона из списка.</td>
+</tr>
+<tr>
+<td><code>pointId</code><br>string</td>
+<td>Обязательно</td>
+<td>Идентификатор точки самовывоза из CSV, 0 - если выбрана доставка курьером.</td>
+</tr>
+<tr>
+<td><code>deliveryId</code><br>integer</td>
+<td>Необязательно</td>
+<td>Идентификатор службы доставки в системе партнера.</td>
+</tr>
+<tr>
+<td><code>productCode</code><br>string</td>
+<td>Обязательно</td>
+<td>Код кредитного продукта.<br> Примеры:<br>0-0-3<br>0-0-6<br>0-0-10<br>0-0-12<br>0-0-18<br>0-0-24<br>0-0-36</td>
+</tr>
+<tr>
+<td><code>address</code><br> <a href="#address">{address}</a></td>
+<td>Необязательно</td>
+<td>Адрес в формате КЛАДР, указывается, если выбрана доставка курьером.</td>
+</tr>
+<tr>
+<td><code>client</code><br> <a href="#clientInfo">{clientInfo}</a></td>
+<td>Обязательно(для метода reserve)</td>
+<td>Информация о клиенте.</td>
+</tr>
+</tbody></table>
+<h3 id='offer'>объект offer</h3><h3 id='address'>объект address</h3><h3 id='clientinfo'>объект clientInfo</h3><h1 id='errors'>Errors</h1>
 <aside class="notice">
 This error section is stored in a separate file in <code>includes/_errors.md</code>. Slate allows you to optionally separate out your docs into many files...just save them to the <code>includes</code> folder and add them to the top of your <code>index.md</code>'s frontmatter. Files are included in the order listed.
 </aside>
